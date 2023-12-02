@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,8 +21,8 @@ struct ipc_hal_interface {
         void (*mutex_unlock)(struct ipc_manager *self, void *mutex);
 
         void* (*fifo_create)(struct ipc_manager *self);
-        void* (*fifo_get_item)(struct ipc_manager *self, void *fifo, uint32_t max_wait_time);
-        void (*fifo_put_item)(struct ipc_manager *self, void *fifo, void *item);
+        bool (*fifo_get_item)(struct ipc_manager *self, void *fifo, void **item, uint32_t max_wait_time);
+        bool (*fifo_put_item)(struct ipc_manager *self, void *fifo, void *item);
 };
 
 #ifdef __cplusplus

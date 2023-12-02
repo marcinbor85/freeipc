@@ -14,8 +14,8 @@ void* ipc_hal_mutex_create(struct ipc_manager *self);
 void ipc_hal_mutex_lock(struct ipc_manager *self, void *mutex);
 void ipc_hal_mutex_unlock(struct ipc_manager *self, void *mutex);
 void* ipc_hal_fifo_create(struct ipc_manager *self);
-void* ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, uint32_t max_wait_time);
-void ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item);
+bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **item, uint32_t max_wait_time);
+bool ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item);
 
 #ifdef __cplusplus
 }

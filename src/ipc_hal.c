@@ -35,12 +35,12 @@ void* ipc_hal_fifo_create(struct ipc_manager *self)
         return self->hal->fifo_create(self);
 }
 
-void* ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, uint32_t max_wait_time)
+bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **item, uint32_t max_wait_time)
 {
-        return self->hal->fifo_get_item(self, fifo, max_wait_time);
+        return self->hal->fifo_get_item(self, fifo, item, max_wait_time);
 }
 
-void ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item)
+bool ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item)
 {
-        self->hal->fifo_put_item(self, fifo, item);
+        return self->hal->fifo_put_item(self, fifo, item);
 }

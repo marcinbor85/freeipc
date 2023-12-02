@@ -25,16 +25,19 @@ static void ipc_hal_free(struct ipc_manager *self, void *ptr)
 
 void* ipc_hal_mutex_create(struct ipc_manager *self)
 {
+        // do nothing
         return NULL;
 }
 
 void ipc_hal_mutex_lock(struct ipc_manager *self, void *mutex)
 {
+        // do nothing
         return;
 }
 
 void ipc_hal_mutex_unlock(struct ipc_manager *self, void *mutex)
 {
+        // do nothing
         return;
 }
 
@@ -57,33 +60,38 @@ void* ipc_hal_fifo_create(struct ipc_manager *self)
         return f;
 }
 
-void* ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, uint32_t max_wait_time)
+bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **item, uint32_t max_wait_time)
 {
         struct fifo *f = fifo;
         
         struct fifo_item *next = NULL;
-        void *item = NULL;
+        void *ret_item = NULL;
 
         if (f->first == NULL)
-                return NULL;
+                return false;
         
         next = f->first;
-        item = f->first->item;
+        ret_item = f->first->item;
 
         f->first = next->next;
         if (f->first == NULL)
             f->last = NULL;
 
         free(next);
+        *item = ret_item;
 
-        return item;
+        return true;
 }
 
-void ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item)
+bool ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item)
 {
         struct fifo *f = fifo;
 
         struct fifo_item *new_item = malloc(sizeof(struct fifo_item));
+
+        if (new_item == NULL)
+                return false;
+
         new_item->item = item;
         new_item->next = NULL;
         
@@ -94,6 +102,8 @@ void ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item)
             f->first = new_item;
             f->last = new_item;
         }
+
+        return true;
 }
 
 static const struct ipc_hal_interface _interface = {

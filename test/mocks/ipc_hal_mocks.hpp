@@ -14,8 +14,8 @@ struct IpcHalInterface
         virtual void ipc_hal_mutex_lock(struct ipc_manager *self, void *mutex) = 0;
         virtual void ipc_hal_mutex_unlock(struct ipc_manager *self, void *mutex) = 0;
         virtual void* ipc_hal_fifo_create(struct ipc_manager *self) = 0;
-        virtual void* ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, uint32_t max_wait_time) = 0;
-        virtual void ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item) = 0;
+        virtual bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **item, uint32_t max_wait_time) = 0;
+        virtual bool ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item) = 0;
 };
 
 struct IpcHalInterface_Mock : public IpcHalInterface
@@ -27,8 +27,8 @@ struct IpcHalInterface_Mock : public IpcHalInterface
         MOCK_METHOD(void, ipc_hal_mutex_lock, (struct ipc_manager *self, void *mutex), (override));
         MOCK_METHOD(void, ipc_hal_mutex_unlock, (struct ipc_manager *self, void *mutex), (override));
         MOCK_METHOD(void*, ipc_hal_fifo_create, (struct ipc_manager *self), (override));
-        MOCK_METHOD(void*, ipc_hal_fifo_get_item, (struct ipc_manager *self, void *fifo, uint32_t max_wait_time), (override));
-        MOCK_METHOD(void, ipc_hal_fifo_put_item, (struct ipc_manager *self, void *fifo, void *item), (override));
+        MOCK_METHOD(bool, ipc_hal_fifo_get_item, (struct ipc_manager *self, void *fifo, void **item, uint32_t max_wait_time), (override));
+        MOCK_METHOD(bool, ipc_hal_fifo_put_item, (struct ipc_manager *self, void *fifo, void *item), (override));
 };
 
 ::testing::StrictMock<IpcHalInterface_Mock> *gMock_IpcHalInterface;
@@ -70,14 +70,14 @@ void* ipc_hal_fifo_create(struct ipc_manager *self)
         return gMock_IpcHalInterface->ipc_hal_fifo_create(self);
 }
 
-void* ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, uint32_t max_wait_time)
+bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **item, uint32_t max_wait_time)
 {
-        return gMock_IpcHalInterface->ipc_hal_fifo_get_item(self, fifo, max_wait_time);
+        return gMock_IpcHalInterface->ipc_hal_fifo_get_item(self, fifo, item, max_wait_time);
 }
 
-void ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item)
+bool ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item)
 {
-        gMock_IpcHalInterface->ipc_hal_fifo_put_item(self, fifo, item);
+        return gMock_IpcHalInterface->ipc_hal_fifo_put_item(self, fifo, item);
 }
 
 }
