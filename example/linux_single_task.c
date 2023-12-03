@@ -28,7 +28,7 @@ static void consumer_node_service(struct ipc_manager *ipc, struct ipc_node *node
 
         case IPC_MESSAGE_TYPE_REQUEST: {
                 printf("request received from %d: payload = ", msg->source_node_id);
-                for (int i = 0; i < msg->request.payload_size; i++) {
+                for (size_t i = 0; i < msg->request.payload_size; i++) {
                         printf("%c", msg->request.payload[i]);
                 }
                 printf("\n");

@@ -7,6 +7,8 @@
 
 struct IpcHalInterface
 {
+        virtual ~IpcHalInterface() {};
+
         virtual uint32_t ipc_hal_get_time(struct ipc_manager *self) = 0;
         virtual void* ipc_hal_malloc(struct ipc_manager *self, size_t size) = 0;
         virtual void ipc_hal_free(struct ipc_manager *self, void *ptr) = 0;
