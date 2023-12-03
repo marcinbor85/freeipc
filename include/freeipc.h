@@ -18,10 +18,10 @@ uint32_t ipc_get_time(struct ipc_manager *self);
 void ipc_node_register(struct ipc_manager *self, struct ipc_node *node, uint32_t node_id, ipc_node_service_func_t func, void *context);
 void ipc_node_service(struct ipc_manager *self, struct ipc_node *node, uint32_t max_wait_time);
 
-void ipc_node_control(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, ipc_control_cmd_t cmd);
-void ipc_node_notify(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, uint32_t value, void *args);
-void ipc_node_request(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, uint8_t *payload, size_t payload_size, uint32_t timeout);
-void ipc_node_response(struct ipc_manager *self, struct ipc_node *node, struct ipc_message *request_msg, uint8_t *payload, size_t payload_size);
+struct ipc_message* ipc_node_control(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, ipc_control_cmd_t cmd);
+struct ipc_message* ipc_node_notify(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, uint32_t value, void *args);
+struct ipc_message* ipc_node_request(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, uint8_t *payload, size_t payload_size, uint32_t timeout);
+struct ipc_message* ipc_node_response(struct ipc_manager *self, struct ipc_node *node, struct ipc_message *request_msg, uint8_t *payload, size_t payload_size);
 
 #ifdef __cplusplus
 }

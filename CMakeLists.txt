@@ -26,6 +26,7 @@ target_sources(
         ${PROJECT_SOURCE_DIR}/src/ipc_node_response.c
         ${PROJECT_SOURCE_DIR}/src/ipc_node_service.c
         ${PROJECT_SOURCE_DIR}/src/ipc_service.c
+        ${PROJECT_SOURCE_DIR}/src/ipc_utils.c
 )
 
 target_include_directories(

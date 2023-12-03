@@ -6,6 +6,8 @@
 
 #include <sys/time.h>
 
+#include <stdio.h>
+
 static uint32_t ipc_hal_get_time(struct ipc_manager *self)
 {
         struct timeval ts;
@@ -15,27 +17,30 @@ static uint32_t ipc_hal_get_time(struct ipc_manager *self)
 
 static void* ipc_hal_malloc(struct ipc_manager *self, size_t size)
 {
-        return malloc(size);
+        void *ptr = malloc(size);
+        // printf("> malloc, ptr = %p, size = %lu, \n", ptr, size);
+        return ptr;
 }
 
 static void ipc_hal_free(struct ipc_manager *self, void *ptr)
 {
+        // printf("> free,   ptr = %p\n", ptr);
         free(ptr);
 }
 
-void* ipc_hal_mutex_create(struct ipc_manager *self)
+static void* ipc_hal_mutex_create(struct ipc_manager *self)
 {
         // do nothing
         return NULL;
 }
 
-void ipc_hal_mutex_lock(struct ipc_manager *self, void *mutex)
+static void ipc_hal_mutex_lock(struct ipc_manager *self, void *mutex)
 {
         // do nothing
         return;
 }
 
-void ipc_hal_mutex_unlock(struct ipc_manager *self, void *mutex)
+static void ipc_hal_mutex_unlock(struct ipc_manager *self, void *mutex)
 {
         // do nothing
         return;
@@ -51,7 +56,7 @@ struct fifo {
         struct fifo_item *last;
 };
 
-void* ipc_hal_fifo_create(struct ipc_manager *self)
+static void* ipc_hal_fifo_create(struct ipc_manager *self)
 {
         struct fifo *f = malloc(sizeof(struct fifo));
         f->first = NULL;
@@ -60,7 +65,7 @@ void* ipc_hal_fifo_create(struct ipc_manager *self)
         return f;
 }
 
-bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **item, uint32_t max_wait_time)
+static bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **item, uint32_t max_wait_time)
 {
         struct fifo *f = fifo;
         
@@ -83,7 +88,7 @@ bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **item, ui
         return true;
 }
 
-bool ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item)
+static bool ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item)
 {
         struct fifo *f = fifo;
 

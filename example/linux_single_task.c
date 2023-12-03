@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#include <unistd.h>
+
 static struct ipc_node g_consumer_node;
 static struct ipc_node g_producer_node;
 
@@ -23,6 +25,8 @@ static void consumer_node_service(struct ipc_manager *ipc, struct ipc_node *node
         switch (msg->type) {
         case IPC_MESSAGE_TYPE_NOTIFY: {
                 printf("notify received from %d: value = 0x%04X\n", msg->source_node_id, (uint16_t)msg->notify.value);
+                printf("pong\n");
+                ipc_node_notify(ipc, node, msg->source_node_id, msg->notify.value, msg->notify.args);
                 break;
         }
 
@@ -57,10 +61,15 @@ static void producer_node_service(struct ipc_manager *ipc, struct ipc_node *node
         
         if (now - last_notify_ts > 1000) {
                 last_notify_ts = now;
+                printf("ping\n");
                 ipc_node_notify(ipc, node, CONSUMER_NODE_ID, 0x1234, NULL);
+        }
+        if (last_request_ts == 0) {
+                last_request_ts = ipc_get_time(ipc);
         }
         if (now - last_request_ts > 3000) {
                 last_request_ts = now;
+                printf("send request\n");
                 ipc_node_request(ipc, node, CONSUMER_NODE_ID, (uint8_t*)"abc", 3, 100);
         }
 
@@ -68,8 +77,16 @@ static void producer_node_service(struct ipc_manager *ipc, struct ipc_node *node
                 return;
 
         switch (msg->type) {
+        case IPC_MESSAGE_TYPE_NOTIFY: {
+                printf("notify received from %d: value = 0x%04X\n", msg->source_node_id, (uint16_t)msg->notify.value);
+                break;
+        }
         case IPC_MESSAGE_TYPE_RESPONSE: {
                 printf("response received\n");
+                break;
+        }
+        case IPC_MESSAGE_TYPE_REQUEST_TIMEOUT: {
+                printf("timeout received\n");
                 break;
         }
         default:
@@ -91,5 +108,7 @@ int main(int argc, char *argv[])
                 ipc_node_service(&g_ipc, &g_consumer_node, 0);
 
                 // do something
+
+                // usleep(10000);
         }
 }

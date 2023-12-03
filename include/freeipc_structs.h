@@ -46,19 +46,18 @@ struct ipc_message {
         };
 };
 
-struct ipc_message_list {
-        struct ipc_message_list *next;
-        struct ipc_message *msg;
-};
-
 struct ipc_node {
         uint32_t id;
         ipc_node_state_t state;
-        struct ipc_message_list *active_messages;
         void *fifo;
 
         ipc_node_service_func_t service_func;
         void *context;
+};
+
+struct ipc_message_list {
+        struct ipc_message_list *next;
+        struct ipc_message *msg;
 };
 
 struct ipc_node_list {
@@ -68,7 +67,9 @@ struct ipc_node_list {
 
 struct ipc_manager {
         struct ipc_node_list *nodes;
+        struct ipc_message_list *active_messages;
         struct ipc_hal_interface const *hal;
+        uint32_t message_id_cntr;
         void *context;
         void *fifo;
         void *mutex;

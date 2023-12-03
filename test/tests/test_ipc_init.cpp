@@ -31,4 +31,5 @@ TEST_F(IpcInit_Test, init)
         EXPECT_EQ(ipc.context, (void*)0x12345678);
         EXPECT_EQ(ipc.fifo, (void*)0x111);
         EXPECT_EQ(ipc.mutex, (void*)0x222);
+        EXPECT_EQ(ipc.message_id_cntr, 0);
 }
