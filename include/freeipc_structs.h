@@ -24,12 +24,12 @@ struct ipc_message_notify {
 struct ipc_message_request {
         uint32_t timeout_value;
         size_t payload_size;
-        uint8_t payload[5];
+        uint8_t *payload;
 };
 
 struct ipc_message_response {
         size_t payload_size;
-        uint8_t payload[5];
+        uint8_t *payload;
 };
 
 struct ipc_message {
