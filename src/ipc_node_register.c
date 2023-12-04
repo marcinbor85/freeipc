@@ -9,11 +9,6 @@ void ipc_node_register(struct ipc_manager *self, struct ipc_node *node, uint32_t
         node->state = IPC_NODE_STATE_RUNNING;
         node->fifo = ipc_hal_fifo_create(self);
 
-        struct ipc_node_list *new_node = ipc_hal_malloc(self, sizeof(struct ipc_node_list));
-        // TODO: check for NULL
-
-        new_node->node = node;
-        new_node->next = (self->nodes != NULL) ? self->nodes : NULL;
-
-        self->nodes = new_node;        
+        node->next = self->nodes;
+        self->nodes = node;
 }

@@ -1,19 +1,27 @@
 #include "freeipc.h"
 #include "freeipc_internal.h"
 
-struct ipc_message* ipc_node_response(struct ipc_manager *self, struct ipc_node *node, struct ipc_message *request_msg, uint8_t *payload, size_t payload_size)
+#include <string.h>
+
+struct ipc_message* ipc_node_response(struct ipc_manager *self, struct ipc_node *node, uint32_t msg_id, uint8_t *payload, size_t payload_size)
 {
-        struct ipc_message *msg = ipc_hal_malloc(self, sizeof(struct ipc_message));
+        struct ipc_pending_message *pending_message = ipc_utils_get_pending_message(self, msg_id);
         // TODO: check for NULL
 
-        msg->id = request_msg->id;
-        msg->source_node_id = node->id;
-        msg->dest_node_id = request_msg->source_node_id;
-        msg->create_timestamp = ipc_get_time(self);
+        struct ipc_message *msg = ipc_hal_malloc(self, sizeof(struct ipc_message) + payload_size);
+        // TODO: check for NULL
+
+
+        msg->header.id = msg_id;
+        msg->header.source_node_id = node->id;
+        msg->header.dest_node_id = pending_message->header.source_node_id;
+        msg->header.create_timestamp = ipc_get_time(self);
+        msg->header.timeout = 0;
 
         msg->type = IPC_MESSAGE_TYPE_RESPONSE;
-        msg->response.payload_size = payload_size;
-        msg->response.payload = payload;
+
+        msg->payload.size = payload_size;
+        memcpy(msg->payload.data, payload, payload_size);
 
         bool success = ipc_hal_fifo_put_item(self, self->fifo, msg);
         if (success == false) {

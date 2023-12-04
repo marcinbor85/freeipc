@@ -18,13 +18,13 @@ static uint32_t ipc_hal_get_time(struct ipc_manager *self)
 static void* ipc_hal_malloc(struct ipc_manager *self, size_t size)
 {
         void *ptr = malloc(size);
-        // printf("> malloc, ptr = %p, size = %lu, \n", ptr, size);
+        printf("> malloc, ptr = %p, size = %lu, \n", ptr, size);
         return ptr;
 }
 
 static void ipc_hal_free(struct ipc_manager *self, void *ptr)
 {
-        // printf("> free,   ptr = %p\n", ptr);
+        printf("> free,   ptr = %p\n", ptr);
         free(ptr);
 }
 

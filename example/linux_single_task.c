@@ -24,23 +24,23 @@ static void consumer_node_service(struct ipc_manager *ipc, struct ipc_node *node
 
         switch (msg->type) {
         case IPC_MESSAGE_TYPE_NOTIFY: {
-                printf("notify received from %d: value = 0x%04X\n", msg->source_node_id, (uint16_t)msg->notify.value);
+                printf("notify received from %d: value = 0x%04X\n", msg->header.source_node_id, (uint16_t)msg->notify.value);
                 printf("pong\n");
-                ipc_node_notify(ipc, node, msg->source_node_id, msg->notify.value, msg->notify.args);
+                ipc_node_notify(ipc, node, msg->header.source_node_id, msg->notify.value, msg->notify.args);
                 break;
         }
 
         case IPC_MESSAGE_TYPE_REQUEST: {
-                printf("request received from %d: payload = ", msg->source_node_id);
-                for (size_t i = 0; i < msg->request.payload_size; i++) {
-                        printf("%c", msg->request.payload[i]);
+                printf("request received from %d: payload = ", msg->header.source_node_id);
+                for (size_t i = 0; i < msg->payload.size; i++) {
+                        printf("%c", msg->payload.data[i]);
                 }
                 printf("\n");
 
                 request_cntr++;
                 if (request_cntr % 5 != 0) {
                         printf("send response\n");
-                        ipc_node_response(ipc, node, msg, NULL, 0);
+                        ipc_node_response(ipc, node, msg->header.id, NULL, 0);
                 } else {
                         printf("no response\n");
                 }
@@ -78,14 +78,14 @@ static void producer_node_service(struct ipc_manager *ipc, struct ipc_node *node
 
         switch (msg->type) {
         case IPC_MESSAGE_TYPE_NOTIFY: {
-                printf("notify received from %d: value = 0x%04X\n", msg->source_node_id, (uint16_t)msg->notify.value);
+                printf("notify received from %d: value = 0x%04X\n", msg->header.source_node_id, (uint16_t)msg->notify.value);
                 break;
         }
         case IPC_MESSAGE_TYPE_RESPONSE: {
                 printf("response received\n");
                 break;
         }
-        case IPC_MESSAGE_TYPE_REQUEST_TIMEOUT: {
+        case IPC_MESSAGE_TYPE_TIMEOUT: {
                 printf("timeout received\n");
                 break;
         }
@@ -109,6 +109,6 @@ int main(int argc, char *argv[])
 
                 // do something
 
-                // usleep(10000);
+                usleep(10000);
         }
 }

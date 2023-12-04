@@ -21,32 +21,32 @@ struct ipc_message_notify {
         void *args;
 };
 
-struct ipc_message_request {
-        uint32_t timeout_value;
-        size_t payload_size;
-        uint8_t *payload;
+struct ipc_message_payload {
+        size_t size;
+        uint8_t data[];
 };
 
-struct ipc_message_response {
-        size_t payload_size;
-        uint8_t *payload;
-};
-
-struct ipc_message {
+struct ipc_message_header {
         uint32_t id;
         uint32_t source_node_id;
         uint32_t dest_node_id;
         uint32_t create_timestamp;
+        uint32_t timeout;
+};
+
+struct ipc_message {
+        struct ipc_message_header header;
         ipc_message_type_t type;
         union {
                 struct ipc_message_control control;
                 struct ipc_message_notify notify;
-                struct ipc_message_request request;
-                struct ipc_message_response response;
+                struct ipc_message_payload payload;
         };
 };
 
 struct ipc_node {
+        struct ipc_node *next;
+
         uint32_t id;
         ipc_node_state_t state;
         void *fifo;
@@ -55,19 +55,14 @@ struct ipc_node {
         void *context;
 };
 
-struct ipc_message_list {
-        struct ipc_message_list *next;
-        struct ipc_message *msg;
-};
-
-struct ipc_node_list {
-        struct ipc_node_list *next;
-        struct ipc_node *node;
+struct ipc_pending_message {
+        struct ipc_pending_message *next;
+        struct ipc_message_header header;
 };
 
 struct ipc_manager {
-        struct ipc_node_list *nodes;
-        struct ipc_message_list *active_messages;
+        struct ipc_node *nodes;
+        struct ipc_pending_message *pending_messages;
         struct ipc_hal_interface const *hal;
         uint32_t message_id_cntr;
         void *context;

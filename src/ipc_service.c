@@ -9,30 +9,38 @@ void ipc_service(struct ipc_manager *self, uint32_t max_wait_time)
 
         uint32_t now = ipc_get_time(self);
         uint32_t timeout = 0;
-        struct ipc_message *nearest_msg = ipc_utils_get_nearest_active_message(self, now, &timeout);
+        struct ipc_pending_message *pending_message = ipc_utils_get_nearest_pending_message(self, now, &timeout);
 
-        uint32_t wait_time = ((nearest_msg != NULL) && (timeout < max_wait_time)) ? timeout : max_wait_time;        
+        uint32_t wait_time = ((pending_message != NULL) && (timeout < max_wait_time)) ? timeout : max_wait_time;        
 
+        if (pending_message != NULL) {
+                printf("pending_message, timeout = %u\n", timeout);
+        }
         bool success = ipc_hal_fifo_get_item(self, self->fifo, (void**)&msg, wait_time);
         if (success == false) {
-                nearest_msg = ipc_utils_get_nearest_active_message(self, now, &timeout);
-                if ((nearest_msg != NULL) && (timeout == 0)) {
+                pending_message = ipc_utils_get_nearest_pending_message(self, now, &timeout);
+                if ((pending_message != NULL) && (timeout == 0)) {
 
-                        msg = nearest_msg;
-                        msg->type = IPC_MESSAGE_TYPE_REQUEST_TIMEOUT;
-                        uint32_t tmp_node_id = msg->dest_node_id;
-                        msg->dest_node_id = msg->source_node_id;
-                        msg->source_node_id = tmp_node_id;
+                        msg = ipc_hal_malloc(self, sizeof(struct ipc_message));
+                        // TODO: check for NULL
+
+                        msg->header.id = pending_message->header.id;
+                        msg->header.source_node_id = pending_message->header.dest_node_id;
+                        msg->header.dest_node_id = pending_message->header.source_node_id;;
+                        msg->header.create_timestamp = ipc_get_time(self);
+                        msg->header.timeout = 0;
+
+                        msg->type = IPC_MESSAGE_TYPE_TIMEOUT;
 
                         // remove message from list
-                        ipc_utils_remove_message_from_list(self, msg->id, false);
-
-                } else {
-                        return;
+                        ipc_utils_remove_pending_message(self, pending_message->header.id);
                 }
         }
 
-        struct ipc_node *node = ipc_utils_get_node_by_id(self, msg->dest_node_id);
+        if (msg == NULL)
+                return;
+
+        struct ipc_node *node = ipc_utils_get_node(self, msg->header.dest_node_id);
         if (node == NULL) {
                 // TODO: handle error
                 return;
@@ -40,25 +48,17 @@ void ipc_service(struct ipc_manager *self, uint32_t max_wait_time)
 
         switch (msg->type) {
         case IPC_MESSAGE_TYPE_REQUEST: {
-                struct ipc_message_list *new_message = ipc_hal_malloc(self, sizeof(struct ipc_message_list));
-                // TODO: check for NULL
-
-                new_message->msg = msg;
-                new_message->next = (self->active_messages != NULL) ? self->active_messages : NULL;
-
-                self->active_messages = new_message;
+                ipc_utils_add_pending_message(self, &msg->header);
                 break;
         }
         case IPC_MESSAGE_TYPE_RESPONSE: {
                 // remove message from list
-                ipc_utils_remove_message_from_list(self, msg->id, true);
+                ipc_utils_remove_pending_message(self, msg->header.id);
                 break;
         }
         default:
                 break;
         }
-
-        // TODO: add support for requests
 
         success = ipc_hal_fifo_put_item(self, node->fifo, msg);
         if (success == false) {

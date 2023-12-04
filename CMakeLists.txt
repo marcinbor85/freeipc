@@ -4,8 +4,8 @@ project(freeipc LANGUAGES C VERSION 0.1.0)
 
 enable_testing()
 
-set (CMAKE_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -g -O0 --coverage -Wno-unused-parameter" )
-set (CMAKE_C_FLAGS "-Werror -Wall -Wextra -pedantic -g -O0 --coverage -Wno-unused-parameter" )
+set (CMAKE_CXX_FLAGS "-Werror -Wall -Wextra -g -O0 --coverage -Wno-unused-parameter" )
+set (CMAKE_C_FLAGS "-Werror -Wall -Wextra -g -O0 --coverage -Wno-unused-parameter" )
 set (CMAKE_EXE_LINKER_FLAGS "--coverage" )
 
 add_library(

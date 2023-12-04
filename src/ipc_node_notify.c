@@ -6,10 +6,11 @@ struct ipc_message* ipc_node_notify(struct ipc_manager *self, struct ipc_node *n
         struct ipc_message *msg = ipc_hal_malloc(self, sizeof(struct ipc_message));
         // TODO: check for NULL
 
-        msg->id = ipc_utils_generate_message_id(self);
-        msg->source_node_id = node->id;
-        msg->dest_node_id = dest_node_id;
-        msg->create_timestamp = ipc_get_time(self);
+        msg->header.id = ipc_utils_generate_message_id(self);
+        msg->header.source_node_id = node->id;
+        msg->header.dest_node_id = dest_node_id;
+        msg->header.create_timestamp = ipc_get_time(self);
+        msg->header.timeout = 0;
 
         msg->type = IPC_MESSAGE_TYPE_NOTIFY;
         msg->notify.value = value;

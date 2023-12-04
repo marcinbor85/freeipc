@@ -17,10 +17,12 @@ void* ipc_hal_fifo_create(struct ipc_manager *self);
 bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **item, uint32_t max_wait_time);
 bool ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item);
 
-struct ipc_node* ipc_utils_get_node_by_id(struct ipc_manager *self, uint32_t id);
+struct ipc_node* ipc_utils_get_node(struct ipc_manager *self, uint32_t id);
 uint32_t ipc_utils_generate_message_id(struct ipc_manager *self);
-struct ipc_message* ipc_utils_get_nearest_active_message(struct ipc_manager *self, uint32_t now, uint32_t *timeout);
-void ipc_utils_remove_message_from_list(struct ipc_manager *self, uint32_t msg_id, bool dispose_msg);
+struct ipc_pending_message* ipc_utils_get_nearest_pending_message(struct ipc_manager *self, uint32_t now, uint32_t *timeout);
+struct ipc_pending_message* ipc_utils_get_pending_message(struct ipc_manager *self, uint32_t msg_id);
+void ipc_utils_remove_pending_message(struct ipc_manager *self, uint32_t msg_id);
+void ipc_utils_add_pending_message(struct ipc_manager *self, struct ipc_message_header *header);
 
 #ifdef __cplusplus
 }

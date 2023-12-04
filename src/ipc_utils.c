@@ -1,15 +1,14 @@
 #include "freeipc.h"
 #include "freeipc_internal.h"
 
-struct ipc_node* ipc_utils_get_node_by_id(struct ipc_manager *self, uint32_t id)
+struct ipc_node* ipc_utils_get_node(struct ipc_manager *self, uint32_t id)
 {
-        struct ipc_node_list *list_item = self->nodes;
+        struct ipc_node *node = self->nodes;
 
-        while (list_item != NULL) {
-                struct ipc_node *node = list_item->node;
+        while (node != NULL) {
                 if (node->id == id)
                         return node;
-                list_item = list_item->next;
+                node = node->next;
         }
 
         return NULL;
@@ -22,52 +21,67 @@ uint32_t ipc_utils_generate_message_id(struct ipc_manager *self)
         return ret;
 }
 
-struct ipc_message* ipc_utils_get_nearest_active_message(struct ipc_manager *self, uint32_t now, uint32_t *timeout)
+struct ipc_pending_message* ipc_utils_get_nearest_pending_message(struct ipc_manager *self, uint32_t now, uint32_t *timeout)
 {
-        struct ipc_message* nearest_msg = NULL;
-        struct ipc_message_list *list_item = self->active_messages;
+        struct ipc_pending_message* msg = NULL;
+        struct ipc_pending_message *pending_message = self->pending_messages;
 
-        while (list_item != NULL) {
-                struct ipc_message *msg = list_item->msg;
-                
-                if (msg->type == IPC_MESSAGE_TYPE_REQUEST) {
-                        uint32_t diff = now - msg->create_timestamp;
-                        uint32_t after = (diff >= msg->request.timeout_value) ? 0 : msg->request.timeout_value - diff;
-                        if ((nearest_msg == NULL) || (after < *timeout)) {
-                                *timeout = after;
-                                nearest_msg = msg;
-                        }
+        while (pending_message != NULL) {                
+
+                uint32_t diff = now - pending_message->header.create_timestamp;
+                uint32_t after = (diff >= pending_message->header.timeout) ? 0 : pending_message->header.timeout - diff;
+                if ((msg == NULL) || (after < *timeout)) {
+                        *timeout = after;
+                        msg = pending_message;
                 }
 
-                list_item = list_item->next;
+                pending_message = pending_message->next;
         }
 
-        return nearest_msg;
+        return msg;
 }
 
-void ipc_utils_remove_message_from_list(struct ipc_manager *self, uint32_t msg_id, bool dispose_msg)
+struct ipc_pending_message* ipc_utils_get_pending_message(struct ipc_manager *self, uint32_t msg_id)
 {
-        struct ipc_message_list *list_item = self->active_messages;
-        struct ipc_message_list *prev_list_item = NULL;
+        struct ipc_pending_message *pending_message = self->pending_messages;
 
-        while (list_item != NULL) {
-                struct ipc_message *message = list_item->msg;
+        while (pending_message != NULL) {                
+                if (pending_message->header.id == msg_id)
+                        return pending_message;
+                pending_message = pending_message->next;
+        }
 
-                if (message->id == msg_id) {
-                        if (prev_list_item == NULL) {
-                                self->active_messages = list_item->next;
+        return NULL;
+}
+
+void ipc_utils_remove_pending_message(struct ipc_manager *self, uint32_t msg_id)
+{
+        struct ipc_pending_message *pending_message = self->pending_messages;
+        struct ipc_pending_message *prev_pending_message = NULL;
+
+        while (pending_message != NULL) {
+                if (pending_message->header.id == msg_id) {
+                        if (prev_pending_message == NULL) {
+                                self->pending_messages = pending_message->next;
                         } else {
-                                prev_list_item->next = list_item->next;
+                                prev_pending_message->next = pending_message->next;
                         }
-                        ipc_hal_free(self, list_item);
-
-                        if (dispose_msg) {
-                                ipc_hal_free(self, message);
-                        }
+                        ipc_hal_free(self, pending_message);
                         return;
                 }
 
-                prev_list_item = list_item;
-                list_item = list_item->next;
+                prev_pending_message = pending_message;
+                pending_message = pending_message->next;
         }
+}
+
+void ipc_utils_add_pending_message(struct ipc_manager *self, struct ipc_message_header *header)
+{
+        struct ipc_pending_message *pending_message = ipc_hal_malloc(self, sizeof(struct ipc_pending_message));
+        // TODO: check for NULL
+
+        pending_message->header = *header;
+
+        pending_message->next = self->pending_messages;
+        self->pending_messages = pending_message;
 }
