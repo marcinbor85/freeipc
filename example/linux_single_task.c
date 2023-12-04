@@ -15,7 +15,7 @@ static struct ipc_manager g_ipc;
 
 extern const struct ipc_hal_interface *g_ipc_hal_interface_linux_no_threads;
 
-static void consumer_node_service(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg)
+static void consumer_node_callback(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg)
 {
         static int request_cntr = 0;
 
@@ -52,7 +52,7 @@ static void consumer_node_service(struct ipc_manager *ipc, struct ipc_node *node
         }
 }
 
-static void producer_node_service(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg)
+static void producer_node_callback(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg)
 {
         static uint32_t last_notify_ts = 0;
         static uint32_t last_request_ts = 0;
@@ -98,8 +98,8 @@ int main(int argc, char *argv[])
 {
         ipc_init(&g_ipc, g_ipc_hal_interface_linux_no_threads, NULL);
 
-        ipc_node_register(&g_ipc, &g_producer_node, PRODUCER_NODE_ID, producer_node_service, NULL);
-        ipc_node_register(&g_ipc, &g_consumer_node, CONSUMER_NODE_ID, consumer_node_service, NULL);
+        ipc_node_register(&g_ipc, &g_producer_node, PRODUCER_NODE_ID, producer_node_callback, NULL);
+        ipc_node_register(&g_ipc, &g_consumer_node, CONSUMER_NODE_ID, consumer_node_callback, NULL);
 
         for (;;) {
                 ipc_service(&g_ipc, 0);

@@ -9,9 +9,8 @@ void ipc_node_service(struct ipc_manager *self, struct ipc_node *node, uint32_t 
 
         ipc_hal_fifo_get_item(self, node->fifo, (void**)&msg, wait_time);
         
-        node->service_func(self, node, msg);
-
         if (msg != NULL) {
+                node->callback_func(self, node, msg);
                 ipc_hal_free(self, msg);
         }
 }

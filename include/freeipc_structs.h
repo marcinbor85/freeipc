@@ -51,7 +51,7 @@ struct ipc_node {
         ipc_node_state_t state;
         void *fifo;
 
-        ipc_node_service_func_t service_func;
+        ipc_node_callback_func_t callback_func;
         void *context;
 };
 

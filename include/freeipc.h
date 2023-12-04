@@ -15,7 +15,7 @@ void ipc_service(struct ipc_manager *self, uint32_t max_wait_time);
 
 uint32_t ipc_get_time(struct ipc_manager *self);
 
-void ipc_node_register(struct ipc_manager *self, struct ipc_node *node, uint32_t node_id, ipc_node_service_func_t func, void *context);
+void ipc_node_register(struct ipc_manager *self, struct ipc_node *node, uint32_t node_id, ipc_node_callback_func_t func, void *context);
 void ipc_node_service(struct ipc_manager *self, struct ipc_node *node, uint32_t max_wait_time);
 
 struct ipc_message* ipc_node_control(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, ipc_control_cmd_t cmd);
