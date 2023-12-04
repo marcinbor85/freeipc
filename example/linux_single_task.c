@@ -15,12 +15,24 @@ static struct ipc_manager g_ipc;
 
 extern const struct ipc_hal_interface *g_ipc_hal_interface_linux_no_threads;
 
-static void consumer_node_callback(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg)
+static void consumer_node_message_hook(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg);
+static void producer_node_message_hook(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg);
+static void producer_node_idle_hook(struct ipc_manager *ipc, struct ipc_node *node);
+
+static const struct ipc_node_descriptor g_consumer_node_desc = {
+        .id = CONSUMER_NODE_ID,
+        .message_hook = consumer_node_message_hook,
+};
+
+static const struct ipc_node_descriptor g_producer_node_desc = {
+        .id = PRODUCER_NODE_ID,
+        .message_hook = producer_node_message_hook,
+        .idle_hook = producer_node_idle_hook,
+};
+
+static void consumer_node_message_hook(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg)
 {
         static int request_cntr = 0;
-
-        if (msg == NULL)
-                return;
 
         switch (msg->type) {
         case IPC_MESSAGE_TYPE_NOTIFY: {
@@ -52,30 +64,8 @@ static void consumer_node_callback(struct ipc_manager *ipc, struct ipc_node *nod
         }
 }
 
-static void producer_node_callback(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg)
+static void producer_node_message_hook(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg)
 {
-        static uint32_t last_notify_ts = 0;
-        static uint32_t last_request_ts = 0;
-
-        uint32_t now = ipc_get_time(ipc);
-        
-        if (now - last_notify_ts > 1000) {
-                last_notify_ts = now;
-                printf("ping\n");
-                ipc_node_notify(ipc, node, CONSUMER_NODE_ID, 0x1234, NULL);
-        }
-        if (last_request_ts == 0) {
-                last_request_ts = ipc_get_time(ipc);
-        }
-        if (now - last_request_ts > 3000) {
-                last_request_ts = now;
-                printf("send request\n");
-                ipc_node_request(ipc, node, CONSUMER_NODE_ID, (uint8_t*)"abc", 3, 100);
-        }
-
-        if (msg == NULL)
-                return;
-
         switch (msg->type) {
         case IPC_MESSAGE_TYPE_NOTIFY: {
                 printf("notify received from %d: value = 0x%04X\n", msg->header.source_node_id, (uint16_t)msg->notify.value);
@@ -94,12 +84,34 @@ static void producer_node_callback(struct ipc_manager *ipc, struct ipc_node *nod
         }
 }
 
+static void producer_node_idle_hook(struct ipc_manager *ipc, struct ipc_node *node)
+{
+        static uint32_t last_notify_ts = 0;
+        static uint32_t last_request_ts = 0;
+
+        uint32_t now = ipc_get_time(ipc);
+
+        if (now - last_notify_ts > 1000) {
+                last_notify_ts = now;
+                printf("ping\n");
+                ipc_node_notify(ipc, node, CONSUMER_NODE_ID, 0x1234, NULL);
+        }
+        if (last_request_ts == 0) {
+                last_request_ts = now;
+        }
+        if (now - last_request_ts > 3000) {
+                last_request_ts = now;
+                printf("send request\n");
+                ipc_node_request(ipc, node, CONSUMER_NODE_ID, (uint8_t*)"abc", 3, 100);
+        }
+}
+
 int main(int argc, char *argv[])
 {
         ipc_init(&g_ipc, g_ipc_hal_interface_linux_no_threads, NULL);
 
-        ipc_node_register(&g_ipc, &g_producer_node, PRODUCER_NODE_ID, producer_node_callback, NULL);
-        ipc_node_register(&g_ipc, &g_consumer_node, CONSUMER_NODE_ID, consumer_node_callback, NULL);
+        ipc_node_register(&g_ipc, &g_producer_node, &g_producer_node_desc, NULL);
+        ipc_node_register(&g_ipc, &g_consumer_node, &g_consumer_node_desc, NULL);
 
         for (;;) {
                 ipc_service(&g_ipc, 0);

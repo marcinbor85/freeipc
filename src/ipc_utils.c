@@ -6,7 +6,7 @@ struct ipc_node* ipc_utils_get_node(struct ipc_manager *self, uint32_t id)
         struct ipc_node *node = self->nodes;
 
         while (node != NULL) {
-                if (node->id == id)
+                if (node->desc->id == id)
                         return node;
                 node = node->next;
         }

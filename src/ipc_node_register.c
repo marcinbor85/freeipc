@@ -1,10 +1,10 @@
 #include "freeipc.h"
 #include "freeipc_internal.h"
 
-void ipc_node_register(struct ipc_manager *self, struct ipc_node *node, uint32_t node_id, ipc_node_callback_func_t func, void *context)
+void ipc_node_register(struct ipc_manager *self, struct ipc_node *node, const struct ipc_node_descriptor *desc, void *context)
 {
-        node->id = node_id;
-        node->callback_func = func;
+        node->desc = desc;
+        
         node->context = context;
         node->state = IPC_NODE_STATE_RUNNING;
         node->fifo = ipc_hal_fifo_create(self);

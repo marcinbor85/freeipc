@@ -7,7 +7,7 @@ struct ipc_message* ipc_node_notify(struct ipc_manager *self, struct ipc_node *n
         // TODO: check for NULL
 
         msg->header.id = ipc_utils_generate_message_id(self);
-        msg->header.source_node_id = node->id;
+        msg->header.source_node_id = node->desc->id;
         msg->header.dest_node_id = dest_node_id;
         msg->header.create_timestamp = ipc_get_time(self);
         msg->header.timeout = 0;

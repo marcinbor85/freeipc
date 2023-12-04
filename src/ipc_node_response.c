@@ -13,7 +13,7 @@ struct ipc_message* ipc_node_response(struct ipc_manager *self, struct ipc_node 
 
 
         msg->header.id = msg_id;
-        msg->header.source_node_id = node->id;
+        msg->header.source_node_id = node->desc->id;
         msg->header.dest_node_id = pending_message->header.source_node_id;
         msg->header.create_timestamp = ipc_get_time(self);
         msg->header.timeout = 0;

@@ -44,14 +44,19 @@ struct ipc_message {
         };
 };
 
+struct ipc_node_descriptor {
+        uint32_t id;
+
+        ipc_node_message_hook_t message_hook;
+        ipc_node_idle_hook_t idle_hook;
+};
+
 struct ipc_node {
         struct ipc_node *next;
-
-        uint32_t id;
+        struct ipc_node_descriptor const *desc;
         ipc_node_state_t state;
         void *fifo;
-
-        ipc_node_callback_func_t callback_func;
+        
         void *context;
 };
 
