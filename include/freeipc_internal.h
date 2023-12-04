@@ -19,10 +19,10 @@ bool ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item);
 
 struct ipc_node* ipc_utils_get_node(struct ipc_manager *self, uint32_t id);
 uint32_t ipc_utils_generate_message_id(struct ipc_manager *self);
-struct ipc_pending_message* ipc_utils_get_nearest_pending_message(struct ipc_manager *self, uint32_t now, uint32_t *timeout);
+uint32_t ipc_utils_get_remaining_time(struct ipc_manager *self, struct ipc_pending_message *msg, uint32_t now);
 struct ipc_pending_message* ipc_utils_get_pending_message(struct ipc_manager *self, uint32_t msg_id);
 void ipc_utils_remove_pending_message(struct ipc_manager *self, uint32_t msg_id);
-void ipc_utils_add_pending_message(struct ipc_manager *self, struct ipc_message_header *header);
+void ipc_utils_add_pending_message(struct ipc_manager *self, struct ipc_message_header *header, uint32_t now);
 
 #ifdef __cplusplus
 }
