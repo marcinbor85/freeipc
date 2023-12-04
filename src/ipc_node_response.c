@@ -3,7 +3,7 @@
 
 #include <string.h>
 
-struct ipc_message* ipc_node_response(struct ipc_manager *self, struct ipc_node *node, uint32_t msg_id, uint8_t *payload, size_t payload_size)
+struct ipc_message* ipc_node_response(struct ipc_manager *self, struct ipc_node *node, uint32_t msg_id, uint32_t type, uint8_t *payload, size_t payload_size)
 {
         struct ipc_pending_message *pending_message = ipc_utils_get_pending_message(self, msg_id);
         // TODO: check for NULL
@@ -20,6 +20,7 @@ struct ipc_message* ipc_node_response(struct ipc_manager *self, struct ipc_node 
 
         msg->type = IPC_MESSAGE_TYPE_RESPONSE;
 
+        msg->payload.type = type;
         msg->payload.size = payload_size;
         memcpy(msg->payload.data, payload, payload_size);
 

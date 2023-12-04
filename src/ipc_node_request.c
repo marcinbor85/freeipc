@@ -3,7 +3,7 @@
 
 #include <string.h>
 
-struct ipc_message* ipc_node_request(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, uint8_t *payload, size_t payload_size, uint32_t timeout)
+struct ipc_message* ipc_node_request(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, uint32_t type, uint8_t *payload, size_t payload_size, uint32_t timeout)
 {
         struct ipc_message *msg = ipc_hal_malloc(self, sizeof(struct ipc_message) + payload_size);
         // TODO: check for NULL
@@ -16,6 +16,7 @@ struct ipc_message* ipc_node_request(struct ipc_manager *self, struct ipc_node *
 
         msg->type = IPC_MESSAGE_TYPE_REQUEST;
         
+        msg->payload.type = type;
         msg->payload.size = payload_size;
         memcpy(msg->payload.data, payload, payload_size);
 

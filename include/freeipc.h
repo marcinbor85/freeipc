@@ -21,8 +21,8 @@ void ipc_node_service(struct ipc_manager *self, struct ipc_node *node, uint32_t 
 
 struct ipc_message* ipc_node_control(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, ipc_control_cmd_t cmd);
 struct ipc_message* ipc_node_notify(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, uint32_t value, void *args);
-struct ipc_message* ipc_node_request(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, uint8_t *payload, size_t payload_size, uint32_t timeout);
-struct ipc_message* ipc_node_response(struct ipc_manager *self, struct ipc_node *node, uint32_t msg_id, uint8_t *payload, size_t payload_size);
+struct ipc_message* ipc_node_request(struct ipc_manager *self, struct ipc_node *node, uint32_t dest_node_id, uint32_t type, uint8_t *payload, size_t payload_size, uint32_t timeout);
+struct ipc_message* ipc_node_response(struct ipc_manager *self, struct ipc_node *node, uint32_t msg_id, uint32_t type, uint8_t *payload, size_t payload_size);
 
 #ifdef __cplusplus
 }

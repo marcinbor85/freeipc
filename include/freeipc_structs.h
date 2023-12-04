@@ -22,6 +22,7 @@ struct ipc_message_notify {
 };
 
 struct ipc_message_payload {
+        uint32_t type;
         size_t size;
         uint8_t data[];
 };

@@ -15,6 +15,11 @@ extern "C" {
 #define NOTIFY_VALUE_PING       0x1001
 #define NOTIFY_VALUE_PONG       0x1002
 
+#define REQUEST_TYPE_WRITE              0x00A0
+#define REQUEST_TYPE_WRITE_ACK          0x00A1
+#define REQUEST_TYPE_READ               0x00B0
+#define REQUEST_TYPE_READ_ACK           0x00B1
+
 extern struct ipc_node g_consumer_node;
 extern struct ipc_node g_producer_node;
 
