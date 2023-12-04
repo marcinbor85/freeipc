@@ -5,6 +5,7 @@
 #include "freeipc_types.h"
 #include "freeipc_enums.h"
 #include "freeipc_hal.h"
+#include "freeipc_defs.h"
 
 #ifdef __cplusplus
 extern "C" {

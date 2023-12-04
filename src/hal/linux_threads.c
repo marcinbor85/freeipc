@@ -1,4 +1,5 @@
 #include "freeipc_hal.h"
+#include "freeipc_defs.h"
 
 #include <string.h>
 #include <stddef.h>
@@ -90,7 +91,7 @@ static bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **i
         tv.tv_sec = max_wait_time / 1000UL;
         tv.tv_usec = (max_wait_time % 1000UL) * 1000;
 
-        retval = select(f->output_fd + 1, &rfds, NULL, NULL, (max_wait_time != (uint32_t)-1) ? &tv : NULL);
+        retval = select(f->output_fd + 1, &rfds, NULL, NULL, (max_wait_time != IPC_TIME_WAIT_FOREVER) ? &tv : NULL);
         if (retval) {
                 int len = read(f->output_fd, &read_item, sizeof(void*));
                 (void)len;

@@ -6,9 +6,9 @@
 
 #include <unistd.h>
 
-pthread_t g_ipc_thread;
-pthread_t g_consumer_thread;
-pthread_t g_producer_thread;
+static pthread_t g_ipc_thread;
+static pthread_t g_consumer_thread;
+static pthread_t g_producer_thread;
 
 static struct ipc_node g_consumer_node;
 static struct ipc_node g_producer_node;
@@ -114,7 +114,7 @@ static void producer_node_idle_hook(struct ipc_manager *ipc, struct ipc_node *no
 static void* ipc_task_function(void *ptr)
 {
         for (;;) {
-                ipc_service(&g_ipc, -1);
+                ipc_service(&g_ipc, IPC_TIME_WAIT_FOREVER);
         }
 
         return NULL;
@@ -123,7 +123,7 @@ static void* ipc_task_function(void *ptr)
 static void* consumer_task_function(void *ptr)
 {
         for (;;) {
-                ipc_node_service(&g_ipc, &g_consumer_node, -1);
+                ipc_node_service(&g_ipc, &g_consumer_node, IPC_TIME_WAIT_FOREVER);
         }
 
         return NULL;
