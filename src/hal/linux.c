@@ -84,7 +84,7 @@ static bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **i
         // TODO: handle INFINITE DELAY
 
         tv.tv_sec = max_wait_time / 1000UL;
-        tv.tv_usec = (max_wait_time % 1000UL) * 1000;
+        tv.tv_usec = (max_wait_time % 1000UL) * 1000UL;
 
         retval = select(f->output_fd + 1, &rfds, NULL, NULL, (max_wait_time != IPC_TIME_WAIT_FOREVER) ? &tv : NULL);
         if (retval) {
