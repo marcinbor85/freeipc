@@ -9,7 +9,7 @@ static pthread_t g_ipc_thread;
 static pthread_t g_consumer_thread;
 static pthread_t g_producer_thread;
 
-extern const struct ipc_hal_interface *g_ipc_hal_interface_linux_threads;
+extern const struct ipc_hal_interface *g_ipc_hal_interface_linux;
 
 static void* ipc_task_function(void *ptr)
 {
@@ -40,7 +40,7 @@ static void* producer_task_function(void *ptr)
 
 int main(int argc, char *argv[])
 {
-        ipc_init(&g_ipc, g_ipc_hal_interface_linux_threads, NULL);
+        ipc_init(&g_ipc, g_ipc_hal_interface_linux, NULL);
 
         ipc_node_register(&g_ipc, &g_producer_node, &g_producer_node_desc, NULL);
         ipc_node_register(&g_ipc, &g_consumer_node, &g_consumer_node_desc, NULL);

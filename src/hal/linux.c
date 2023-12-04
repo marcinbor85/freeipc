@@ -1,9 +1,12 @@
 #include "freeipc_hal.h"
+#include "freeipc_defs.h"
 
 #include <string.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <unistd.h>
 
+#include <sys/wait.h>
 #include <sys/time.h>
 
 #include <stdio.h>
@@ -30,37 +33,38 @@ static void ipc_hal_free(struct ipc_manager *self, void *ptr)
 
 static void* ipc_hal_mutex_create(struct ipc_manager *self)
 {
-        // do nothing
+        // TODO
         return NULL;
 }
 
 static void ipc_hal_mutex_lock(struct ipc_manager *self, void *mutex)
 {
-        // do nothing
+        // TODO
         return;
 }
 
 static void ipc_hal_mutex_unlock(struct ipc_manager *self, void *mutex)
 {
-        // do nothing
+        // TODO
         return;
 }
 
-struct fifo_item {
-        struct fifo_item *next;
-        void *item;
-};
-
 struct fifo {
-        struct fifo_item *first;
-        struct fifo_item *last;
+        int output_fd;
+        int input_fd;
 };
 
 static void* ipc_hal_fifo_create(struct ipc_manager *self)
 {
         struct fifo *f = malloc(sizeof(struct fifo));
-        f->first = NULL;
-        f->last = NULL;
+
+        int fd[2];
+        int retval = pipe(fd);
+        (void)retval;
+        // TODO: add error handling
+
+        f->output_fd = fd[0];
+        f->input_fd = fd[1];
 
         return f;
 }
@@ -68,45 +72,42 @@ static void* ipc_hal_fifo_create(struct ipc_manager *self)
 static bool ipc_hal_fifo_get_item(struct ipc_manager *self, void *fifo, void **item, uint32_t max_wait_time)
 {
         struct fifo *f = fifo;
-        
-        struct fifo_item *next = NULL;
-        void *ret_item = NULL;
+        void *read_item = NULL;
 
-        if (f->first == NULL)
-                return false;
-        
-        next = f->first;
-        ret_item = f->first->item;
+        int retval;
+        fd_set rfds;
+        struct timeval tv;
 
-        f->first = next->next;
-        if (f->first == NULL)
-            f->last = NULL;
+        FD_ZERO(&rfds);
+        FD_SET(f->output_fd, &rfds);
 
-        free(next);
-        *item = ret_item;
+        // TODO: handle INFINITE DELAY
 
-        return true;
+        tv.tv_sec = max_wait_time / 1000UL;
+        tv.tv_usec = (max_wait_time % 1000UL) * 1000;
+
+        retval = select(f->output_fd + 1, &rfds, NULL, NULL, (max_wait_time != IPC_TIME_WAIT_FOREVER) ? &tv : NULL);
+        if (retval) {
+                int len = read(f->output_fd, &read_item, sizeof(void*));
+                (void)len;
+                // TODO: add error handling
+                *item = read_item;
+                return true;
+        } else {
+                // TODO: add error handling
+        }
+
+        *item = read_item;
+        return false;
 }
 
 static bool ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item)
 {
         struct fifo *f = fifo;
 
-        struct fifo_item *new_item = malloc(sizeof(struct fifo_item));
-
-        if (new_item == NULL)
-                return false;
-
-        new_item->item = item;
-        new_item->next = NULL;
-        
-        if (f->last != NULL) {
-            f->last->next = new_item;
-            f->last = new_item;
-        } else {
-            f->first = new_item;
-            f->last = new_item;
-        }
+        int len = write(f->input_fd, (void*)&item, sizeof(void*));
+        (void)len;
+        // TODO: add error handling
 
         return true;
 }
@@ -125,4 +126,4 @@ static const struct ipc_hal_interface _interface = {
         .fifo_put_item = ipc_hal_fifo_put_item,
 };
 
-const struct ipc_hal_interface *g_ipc_hal_interface_linux_no_threads = &_interface;
+const struct ipc_hal_interface *g_ipc_hal_interface_linux = &_interface;
