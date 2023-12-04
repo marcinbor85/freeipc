@@ -8,3 +8,10 @@ add_executable(linux_single_task
 )
 
 target_link_libraries(linux_single_task freeipc)
+
+add_executable(linux_multiple_tasks
+        ${PROJECT_SOURCE_DIR}/linux_multiple_tasks.c
+        ${PROJECT_SOURCE_DIR}/../src/hal/linux_threads.c
+)
+
+target_link_libraries(linux_multiple_tasks freeipc)

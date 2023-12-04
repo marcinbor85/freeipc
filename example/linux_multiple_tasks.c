@@ -1,9 +1,14 @@
 
 #include "freeipc.h"
 
-#include <stddef.h>
+#include <stdio.h>
+#include <pthread.h>
 
+#include <unistd.h>
 
+pthread_t g_ipc_thread;
+pthread_t g_consumer_thread;
+pthread_t g_producer_thread;
 
 static struct ipc_node g_consumer_node;
 static struct ipc_node g_producer_node;
@@ -13,7 +18,9 @@ static struct ipc_manager g_ipc;
 #define PRODUCER_NODE_ID        1
 #define CONSUMER_NODE_ID        2
 
-static void consumer_node_service(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message_item *msg, void *context)
+extern const struct ipc_hal_interface *g_ipc_hal_interface_linux_threads;
+
+static void consumer_node_service(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg)
 {
         static int request_cntr = 0;
 
@@ -21,68 +28,116 @@ static void consumer_node_service(struct ipc_manager *ipc, struct ipc_node *node
                 return;
 
         switch (msg->type) {
-        case IPC_MESSAGE_TYPE_NOTIFY:
-                printf("notify received from %d: value = 0x%04X\n", msg->source, (uint16_t)msg->notify.value);
+        case IPC_MESSAGE_TYPE_NOTIFY: {
+                printf("notify received from %d: value = 0x%04X\n", msg->header.source_node_id, (uint16_t)msg->notify.value);
+                printf("pong\n");
+                ipc_node_notify(ipc, node, msg->header.source_node_id, msg->notify.value, msg->notify.args);
                 break;
+        }
 
-        case IPC_MESSAGE_TYPE_REQUEST:
-                printf("request received from %d: payload = ", msg->source);
-                for (int i = 0; i < msg->request.payload_size; i++) {
-                        printf("%c", msg->request.payload[i]);
+        case IPC_MESSAGE_TYPE_REQUEST: {
+                printf("request received from %d: payload = ", msg->header.source_node_id);
+                for (size_t i = 0; i < msg->payload.size; i++) {
+                        printf("%c", msg->payload.data[i]);
                 }
                 printf("\n");
 
                 request_cntr++;
                 if (request_cntr % 5 != 0) {
                         printf("send response\n");
-                        ipc_node_response(ipc, node, msg->source, NULL, 0);
+                        ipc_node_response(ipc, node, msg->header.id, NULL, 0);
                 } else {
                         printf("no response\n");
                 }
                 
                 break;
         }
+        default:
+                break;
+        }
 }
 
-static void producer_node_service(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message_item *msg, void *context)
+static void producer_node_service(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg)
 {
         static uint32_t last_notify_ts = 0;
         static uint32_t last_request_ts = 0;
 
-        uint32_t now = ipc_hal_time_get_current();
+        uint32_t now = ipc_get_time(ipc);
         
         if (now - last_notify_ts > 1000) {
                 last_notify_ts = now;
+                printf("ping\n");
                 ipc_node_notify(ipc, node, CONSUMER_NODE_ID, 0x1234, NULL);
+        }
+        if (last_request_ts == 0) {
+                last_request_ts = ipc_get_time(ipc);
         }
         if (now - last_request_ts > 3000) {
                 last_request_ts = now;
-                ipc_node_request(ipc, node, CONSUMER_NODE_ID, "abc", 3, 100);
+                printf("send request\n");
+                ipc_node_request(ipc, node, CONSUMER_NODE_ID, (uint8_t*)"abc", 3, 100);
         }
 
         if (msg == NULL)
                 return;
 
         switch (msg->type) {
-        case IPC_MESSAGE_TYPE_RESPONSE:
+        case IPC_MESSAGE_TYPE_NOTIFY: {
+                printf("notify received from %d: value = 0x%04X\n", msg->header.source_node_id, (uint16_t)msg->notify.value);
+                break;
+        }
+        case IPC_MESSAGE_TYPE_RESPONSE: {
                 printf("response received\n");
+                break;
+        }
+        case IPC_MESSAGE_TYPE_TIMEOUT: {
+                printf("timeout received\n");
+                break;
+        }
+        default:
                 break;
         }
 }
 
+static void* ipc_task_function(void *ptr)
+{
+        for (;;) {
+                ipc_service(&g_ipc, -1);
+        }
+
+        return NULL;
+}
+
+static void* consumer_task_function(void *ptr)
+{
+        for (;;) {
+                ipc_node_service(&g_ipc, &g_consumer_node, -1);
+        }
+
+        return NULL;
+}
+
+static void* producer_task_function(void *ptr)
+{
+        for (;;) {
+                ipc_node_service(&g_ipc, &g_producer_node, 10);
+        }
+
+        return NULL;
+}
+
 int main(int argc, char *argv[])
 {
-        ipc_init(&g_ipc);
+        ipc_init(&g_ipc, g_ipc_hal_interface_linux_threads, NULL);
 
         ipc_node_register(&g_ipc, &g_producer_node, PRODUCER_NODE_ID, producer_node_service, NULL);
         ipc_node_register(&g_ipc, &g_consumer_node, CONSUMER_NODE_ID, consumer_node_service, NULL);
 
-        for (;;) {
-                ipc_service(&g_ipc, 0);
+        pthread_create(&g_ipc_thread, NULL, ipc_task_function, NULL);
+        pthread_create(&g_consumer_thread, NULL, consumer_task_function, NULL);
+        pthread_create(&g_producer_thread, NULL, producer_task_function, NULL);
 
-                ipc_node_service(&g_ipc, &g_producer_node, 0);
-                ipc_node_service(&g_ipc, &g_consumer_node, 0);
-
-                // do something
-        }
+        pthread_join(g_ipc_thread, NULL);
+        pthread_join(g_consumer_thread, NULL);
+        pthread_join(g_producer_thread, NULL);
 }
