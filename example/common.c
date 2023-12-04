@@ -28,9 +28,14 @@ static void consumer_node_message_hook(struct ipc_manager *ipc, struct ipc_node 
 
         switch (msg->type) {
         case IPC_MESSAGE_TYPE_NOTIFY: {
-                printf("notify received from %d: value = 0x%04X\n", msg->header.source_node_id, (uint16_t)msg->notify.value);
-                printf("pong\n");
-                ipc_node_notify(ipc, node, msg->header.source_node_id, msg->notify.value, msg->notify.args);
+                switch (msg->notify.value) {
+                case NOTIFY_VALUE_PING:
+                        printf("NOTIFY: ping from <%u>\n", msg->header.source_node_id);
+                        ipc_node_notify(ipc, node, msg->header.source_node_id, NOTIFY_VALUE_PONG, NULL);
+                        break;
+                default:
+                        break;
+                }
                 break;
         }
 
@@ -60,7 +65,13 @@ static void producer_node_message_hook(struct ipc_manager *ipc, struct ipc_node 
 {
         switch (msg->type) {
         case IPC_MESSAGE_TYPE_NOTIFY: {
-                printf("notify received from %d: value = 0x%04X\n", msg->header.source_node_id, (uint16_t)msg->notify.value);
+                switch (msg->notify.value) {
+                case NOTIFY_VALUE_PONG:
+                        printf("NOTIFY: pong from <%u>\n", msg->header.source_node_id);
+                        break;
+                default:
+                        break;
+                }
                 break;
         }
         case IPC_MESSAGE_TYPE_RESPONSE: {
@@ -85,8 +96,7 @@ static void producer_node_idle_hook(struct ipc_manager *ipc, struct ipc_node *no
 
         if (now - last_notify_ts > 1000) {
                 last_notify_ts = now;
-                printf("ping\n");
-                ipc_node_notify(ipc, node, CONSUMER_NODE_ID, 0x1234, NULL);
+                ipc_node_notify(ipc, node, CONSUMER_NODE_ID, NOTIFY_VALUE_PING, NULL);
         }
         if (last_request_ts == 0) {
                 last_request_ts = now;

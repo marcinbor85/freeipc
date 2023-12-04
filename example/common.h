@@ -12,6 +12,9 @@ extern "C" {
 #define PRODUCER_NODE_ID        1
 #define CONSUMER_NODE_ID        2
 
+#define NOTIFY_VALUE_PING       0x1001
+#define NOTIFY_VALUE_PONG       0x1002
+
 extern struct ipc_node g_consumer_node;
 extern struct ipc_node g_producer_node;
 
