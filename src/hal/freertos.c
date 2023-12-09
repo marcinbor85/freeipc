@@ -56,7 +56,7 @@ bool ipc_hal_fifo_put_item(struct ipc_manager *self, void *fifo, void *item)
         return false;
 }
 
-static const struct ipc_hal_interface _interface = {
+const struct ipc_hal_interface g_ipc_hal_interface_freertos = {
         .get_time = ipc_hal_get_time,
         .malloc = ipc_hal_malloc,
         .free = ipc_hal_free,
@@ -69,5 +69,3 @@ static const struct ipc_hal_interface _interface = {
         .fifo_get_item = ipc_hal_fifo_get_item,
         .fifo_put_item = ipc_hal_fifo_put_item,
 };
-
-const struct ipc_hal_interface *g_ipc_hal_interface_freertos = &_interface;

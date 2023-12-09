@@ -24,10 +24,10 @@ TEST_F(IpcInit_Test, init)
         EXPECT_CALL(*gMock_IpcHalInterface, ipc_hal_fifo_create(&ipc)).WillOnce(::testing::Return((void*)0x111));
         EXPECT_CALL(*gMock_IpcHalInterface, ipc_hal_mutex_create(&ipc)).WillOnce(::testing::Return((void*)0x222));
 
-        ipc_init(&ipc, (struct ipc_hal_interface*)0x333, (void*)0x12345678);
+        ipc_init(&ipc, (const struct ipc_descriptor*)0x333, (void*)0x12345678);
 
         EXPECT_EQ(ipc.nodes, nullptr);
-        EXPECT_EQ(ipc.hal, (struct ipc_hal_interface*)0x333);
+        EXPECT_EQ(ipc.desc, (const struct ipc_descriptor*)0x333);
         EXPECT_EQ(ipc.context, (void*)0x12345678);
         EXPECT_EQ(ipc.fifo, (void*)0x111);
         EXPECT_EQ(ipc.mutex, (void*)0x222);

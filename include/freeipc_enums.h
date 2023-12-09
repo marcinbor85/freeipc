@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+// TODO: remove control
 typedef enum {
         IPC_CONTROL_CMD_SUSPEND,
         IPC_CONTROL_CMD_RESUME,
@@ -20,6 +21,7 @@ typedef enum {
         IPC_MESSAGE_TYPE__TOTAL_NUM
 } ipc_message_type_t;
 
+// TODO: remove state
 typedef enum {
         IPC_NODE_STATE_NOT_REGISTERED,
         IPC_NODE_STATE_PAUSED,

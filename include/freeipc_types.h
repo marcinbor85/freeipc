@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+// TODO: add typedefs to node_id, message_id, etc...
+
 struct ipc_message;
 struct ipc_node;
 struct ipc_manager;

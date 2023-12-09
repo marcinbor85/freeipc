@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-void ipc_init(struct ipc_manager *self, const struct ipc_hal_interface *hal, void *context);
+void ipc_init(struct ipc_manager *self, const struct ipc_descriptor *desc, void *context);
 void ipc_service(struct ipc_manager *self, uint32_t max_wait_time);
 
 uint32_t ipc_get_time(struct ipc_manager *self);

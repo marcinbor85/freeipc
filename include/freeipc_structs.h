@@ -47,6 +47,7 @@ struct ipc_message {
 
 struct ipc_node_descriptor {
         uint32_t id;
+        const char *name;
 
         ipc_node_message_hook_t message_hook;
         ipc_node_idle_hook_t idle_hook;
@@ -66,10 +67,15 @@ struct ipc_pending_message {
         struct ipc_message_header header;
 };
 
+struct ipc_descriptor {
+        const char *name;
+        const struct ipc_hal_interface *hal;
+};
+
 struct ipc_manager {
+        struct ipc_descriptor const *desc;
         struct ipc_node *nodes;
         struct ipc_pending_message *pending_messages;
-        struct ipc_hal_interface const *hal;
         uint32_t message_id_cntr;
         void *context;
         void *fifo;
