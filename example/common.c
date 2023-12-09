@@ -2,24 +2,8 @@
 
 #include <stdio.h>
 
-#define STYLE_RESET             "\x1B[0m"
-#define STYLE_BOLD              "\x1B[1m"
-#define STYLE_DISABLED          "\x1B[2m"
-#define STYLE_ITALIC            "\x1B[3m"
-#define STYLE_UNDERSCORE        "\x1B[4m"
-
-#define COLOR_RED               "\x1B[31m"
-#define COLOR_GREEN             "\x1B[32m"
-#define COLOR_YELLOW            "\x1B[33m"
-#define COLOR_BLUE              "\x1B[34m"
-#define COLOR_MAGENTA           "\x1B[35m"
-#define COLOR_CYAN              "\x1B[36m"
-#define COLOR_WHITE             "\x1B[37m"
-
 struct ipc_node g_consumer_node;
 struct ipc_node g_producer_node;
-
-struct ipc_manager g_ipc;
 
 static void consumer_node_message_hook(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg);
 static void producer_node_message_hook(struct ipc_manager *ipc, struct ipc_node *node, struct ipc_message *msg);
@@ -27,11 +11,13 @@ static void producer_node_idle_hook(struct ipc_manager *ipc, struct ipc_node *no
 
 const struct ipc_node_descriptor g_consumer_node_desc = {
         .id = CONSUMER_NODE_ID,
+        .name = "consumer",
         .message_hook = consumer_node_message_hook,
 };
 
 const struct ipc_node_descriptor g_producer_node_desc = {
         .id = PRODUCER_NODE_ID,
+        .name = "producer",
         .message_hook = producer_node_message_hook,
         .idle_hook = producer_node_idle_hook,
 };
@@ -42,7 +28,7 @@ static void consumer_node_message_hook(struct ipc_manager *ipc, struct ipc_node 
         case IPC_MESSAGE_TYPE_NOTIFY: {
                 switch (msg->notify.value) {
                 case NOTIFY_VALUE_PING:
-                        printf(COLOR_YELLOW "<%d> NOTIFY {%u}: ping from <%u>\n" STYLE_RESET, node->desc->id, msg->header.id, msg->header.source_node_id);
+                        printf("PING\n");
                         ipc_node_notify(ipc, node, msg->header.source_node_id, NOTIFY_VALUE_PONG, NULL);
                         break;
                 default:
@@ -54,7 +40,7 @@ static void consumer_node_message_hook(struct ipc_manager *ipc, struct ipc_node 
         case IPC_MESSAGE_TYPE_REQUEST: {
                 switch (msg->payload.type) {
                 case REQUEST_TYPE_WRITE:
-                        printf("<%d> REQUEST {%u}: write from <%d> payload [", node->desc->id, msg->header.id, msg->header.source_node_id);
+                        printf("WRITE [");
                         for (size_t i = 0; i < msg->payload.size; i++) {
                                 printf("%c", msg->payload.data[i]);
                         }
@@ -63,7 +49,7 @@ static void consumer_node_message_hook(struct ipc_manager *ipc, struct ipc_node 
                         break;
 
                 case REQUEST_TYPE_READ:
-                        printf("<%d> REQUEST {%u}: read from <%d> payload [", node->desc->id, msg->header.id, msg->header.source_node_id);
+                        printf("READ [");
                         for (size_t i = 0; i < msg->payload.size; i++) {
                                 printf("%c", msg->payload.data[i]);
                         }
@@ -92,7 +78,7 @@ static void producer_node_message_hook(struct ipc_manager *ipc, struct ipc_node 
         case IPC_MESSAGE_TYPE_NOTIFY: {
                 switch (msg->notify.value) {
                 case NOTIFY_VALUE_PONG:
-                        printf(COLOR_YELLOW "<%d> NOTIFY {%u}: pong from <%u>\n" STYLE_RESET, node->desc->id, msg->header.id, msg->header.source_node_id);
+                        printf("PONG\n");
                         break;
                 default:
                         break;
@@ -102,19 +88,19 @@ static void producer_node_message_hook(struct ipc_manager *ipc, struct ipc_node 
         case IPC_MESSAGE_TYPE_RESPONSE: {
                 switch (msg->payload.type) {
                 case REQUEST_TYPE_WRITE_ACK:
-                        printf(COLOR_GREEN "<%d> RESPONSE {%u}: write_ack from <%d> payload [", node->desc->id, msg->header.id, msg->header.source_node_id);
+                        printf("WRITE_ACK [");
                         for (size_t i = 0; i < msg->payload.size; i++) {
                                 printf("%c", msg->payload.data[i]);
                         }
-                        printf("]\n" STYLE_RESET);
+                        printf("]\n");
                         break;
 
                 case REQUEST_TYPE_READ_ACK:
-                        printf(COLOR_GREEN "<%d> RESPONSE {%u}: read_ack from <%d> payload [", node->desc->id, msg->header.id, msg->header.source_node_id);
+                        printf("READ_ACK [");
                         for (size_t i = 0; i < msg->payload.size; i++) {
                                 printf("%c", msg->payload.data[i]);
                         }
-                        printf("]\n" STYLE_RESET);
+                        printf("]\n");
                         break;
                 
                 default:
@@ -123,7 +109,7 @@ static void producer_node_message_hook(struct ipc_manager *ipc, struct ipc_node 
                 break;
         }
         case IPC_MESSAGE_TYPE_TIMEOUT: {
-                printf(COLOR_RED "<%d> TIMEOUT {%u}: from <%d>\n" STYLE_RESET, node->desc->id, msg->header.id, msg->header.source_node_id);
+                printf("TIMEOUT\n");
                 break;
         }
         default:
@@ -146,7 +132,7 @@ static void producer_node_idle_hook(struct ipc_manager *ipc, struct ipc_node *no
         if (now - last_request_ts > 3000) {
                 last_request_ts = now;
                 ipc_node_request(ipc, node, CONSUMER_NODE_ID, REQUEST_TYPE_WRITE, (uint8_t*)"to_write", 8, 100);
-                ipc_node_request(ipc, node, CONSUMER_NODE_ID, REQUEST_TYPE_READ, (uint8_t*)"address", 7 , 100);
+                ipc_node_request(ipc, node, CONSUMER_NODE_ID, REQUEST_TYPE_READ, (uint8_t*)"address", 7 , 200);
                 ipc_node_request(ipc, node, CONSUMER_NODE_ID, REQUEST_TYPE_READ, NULL, 0, 2500);
         }
 }

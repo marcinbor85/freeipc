@@ -12,21 +12,19 @@ extern "C" {
 #define PRODUCER_NODE_ID        1
 #define CONSUMER_NODE_ID        2
 
-#define NOTIFY_VALUE_PING       0x1001
-#define NOTIFY_VALUE_PONG       0x1002
+#define NOTIFY_VALUE_PING       1001
+#define NOTIFY_VALUE_PONG       1002
 
-#define REQUEST_TYPE_WRITE              0x00A0
-#define REQUEST_TYPE_WRITE_ACK          0x00A1
-#define REQUEST_TYPE_READ               0x00B0
-#define REQUEST_TYPE_READ_ACK           0x00B1
+#define REQUEST_TYPE_WRITE              1
+#define REQUEST_TYPE_WRITE_ACK          101
+#define REQUEST_TYPE_READ               2
+#define REQUEST_TYPE_READ_ACK           102
 
 extern struct ipc_node g_consumer_node;
 extern struct ipc_node g_producer_node;
 
 extern const struct ipc_node_descriptor g_consumer_node_desc;
 extern const struct ipc_node_descriptor g_producer_node_desc;
-
-extern struct ipc_manager g_ipc;
 
 #ifdef __cplusplus
 }
