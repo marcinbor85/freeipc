@@ -1,7 +1,11 @@
 #include "freeipc.h"
 #include "freeipc_internal.h"
 
-#include <stdio.h>
+#define IPC_LOG_TAG             "service"
+#define IPC_LOG_TAG_LEVEL       IPC_LOG_LEVEL_DEBUG
+
+#include "freeipc_log.h"
+#include "freeipc_assert.h"
 
 void ipc_service(struct ipc_manager *self, uint32_t max_wait_time)
 {
@@ -30,7 +34,7 @@ void ipc_service(struct ipc_manager *self, uint32_t max_wait_time)
 
                         if (timeout == 0) {
                                 msg = ipc_hal_malloc(self, sizeof(struct ipc_message));
-                                // TODO: check for NULL
+                                IPC_ASSERT(msg != NULL);
 
                                 msg->header.id = pending_message->header.id;
                                 msg->header.source_node_id = pending_message->header.dest_node_id;
@@ -46,21 +50,36 @@ void ipc_service(struct ipc_manager *self, uint32_t max_wait_time)
         if (msg == NULL)
                 return;
 
-        struct ipc_node *node = ipc_utils_get_node(self, msg->header.dest_node_id);
-        if (node == NULL) {
-                // TODO: handle error
+        struct ipc_node *src_node = ipc_utils_get_node(self, msg->header.source_node_id);
+        if (src_node == NULL) {
+                IPC_LOG_E("Source node doesn't exist");
+                return;
+        }
+
+        struct ipc_node *dest_node = ipc_utils_get_node(self, msg->header.dest_node_id);
+        if (dest_node == NULL) {
+                IPC_LOG_E("Destination node doesn't exist");
                 return;
         }
 
         switch (msg->type) {
+        case IPC_MESSAGE_TYPE_NOTIFY: {
+                IPC_LOG_I("Notify from <%s> to <%s>, value=%u", src_node->desc->name, dest_node->desc->name, msg->notify.value);
+                break;
+        }
         case IPC_MESSAGE_TYPE_REQUEST: {
+                IPC_LOG_I("Request from <%s> to <%s>, msg_id=%u, type=%u", src_node->desc->name, dest_node->desc->name, msg->header.id, msg->payload.type);
                 now = ipc_get_time(self);
                 ipc_utils_add_pending_message(self, &msg->header, now);
                 break;
         }
-        case IPC_MESSAGE_TYPE_TIMEOUT:
+        case IPC_MESSAGE_TYPE_TIMEOUT: {
+                IPC_LOG_W("Timeout from <%s> to <%s>, msg_id=%u", src_node->desc->name, dest_node->desc->name, msg->header.id);
+                ipc_utils_remove_pending_message(self, msg->header.id);
+                break;
+        }
         case IPC_MESSAGE_TYPE_RESPONSE: {
-                // remove message from list
+                IPC_LOG_I("Response from <%s> to <%s>, msg_id=%u, type=%u", src_node->desc->name, dest_node->desc->name, msg->header.id, msg->payload.type);
                 ipc_utils_remove_pending_message(self, msg->header.id);
                 break;
         }
@@ -68,9 +87,9 @@ void ipc_service(struct ipc_manager *self, uint32_t max_wait_time)
                 break;
         }
 
-        success = ipc_hal_fifo_put_item(self, node->fifo, msg);
+        success = ipc_hal_fifo_put_item(self, dest_node->fifo, msg);
         if (success == false) {
-                // TODO: handle error
+                IPC_LOG_E("Cannot put item to fifo");
                 return;
         }
 }

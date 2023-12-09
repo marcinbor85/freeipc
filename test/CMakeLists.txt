@@ -17,6 +17,7 @@ function(create_test TARGET)
     target_include_directories(${TARGET} PRIVATE
         ${GTEST_INCLUDE_DIRS}
         ${PROJECT_SOURCE_DIR}/../include
+        ${PROJECT_SOURCE_DIR}
         ${PROJECT_SOURCE_DIR}/mocks
     )
 

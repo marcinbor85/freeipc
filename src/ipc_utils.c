@@ -1,6 +1,12 @@
 #include "freeipc.h"
 #include "freeipc_internal.h"
 
+#define IPC_LOG_TAG             "utils"
+#define IPC_LOG_TAG_LEVEL       IPC_LOG_LEVEL_DEBUG
+
+#include "freeipc_log.h"
+#include "freeipc_assert.h"
+
 struct ipc_node* ipc_utils_get_node(struct ipc_manager *self, uint32_t id)
 {
         struct ipc_node *node = self->nodes;
@@ -65,7 +71,7 @@ void ipc_utils_remove_pending_message(struct ipc_manager *self, uint32_t msg_id)
 void ipc_utils_add_pending_message(struct ipc_manager *self, struct ipc_message_header *header, uint32_t now)
 {
         struct ipc_pending_message *pending_message = ipc_hal_malloc(self, sizeof(struct ipc_pending_message));
-        // TODO: check for NULL
+        IPC_ASSERT(pending_message != NULL);
 
         pending_message->header = *header;
         pending_message->next = NULL;
@@ -75,6 +81,7 @@ void ipc_utils_add_pending_message(struct ipc_manager *self, struct ipc_message_
 
         if (next_pending_message == NULL) {
                 self->pending_messages = pending_message;
+                IPC_LOG_D("No messages in list, new message added to the beginning of the list");
                 return;
         }
 
@@ -87,13 +94,16 @@ void ipc_utils_add_pending_message(struct ipc_manager *self, struct ipc_message_
                         pending_message->next = next_pending_message;
                         if (prev_pending_message == NULL) {
                                 self->pending_messages = pending_message;
+                                IPC_LOG_D("New message added to the front of the list");
                         } else {
                                 prev_pending_message->next = pending_message;
+                                IPC_LOG_D("New message added to the middle of the list");
                         }
                         break;
                 } else {
                         if (next_pending_message->next == NULL) {
                                 next_pending_message->next = pending_message;
+                                IPC_LOG_D("New message added to the end of the list");
                                 break;
                         }
                 }

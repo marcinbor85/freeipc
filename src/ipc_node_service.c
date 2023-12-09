@@ -1,6 +1,12 @@
 #include "freeipc.h"
 #include "freeipc_internal.h"
 
+#define IPC_LOG_TAG             "node_srv"
+#define IPC_LOG_TAG_LEVEL       IPC_LOG_LEVEL_DEBUG
+
+#include "freeipc_log.h"
+#include "freeipc_assert.h"
+
 void ipc_node_service(struct ipc_manager *self, struct ipc_node *node, uint32_t max_wait_time)
 {
         struct ipc_message *msg = NULL;
